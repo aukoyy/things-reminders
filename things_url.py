@@ -6,7 +6,7 @@ import logging
 import subprocess
 from urllib.parse import quote, urlencode
 
-log = logging.getLogger("things_todoist")
+log = logging.getLogger("things_reminders")
 
 
 def complete_todo(things_uuid: str, auth_token: str) -> None:

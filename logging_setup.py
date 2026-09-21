@@ -10,7 +10,7 @@ from config import LOG_PATH, ensure_dirs
 
 def setup_logging() -> logging.Logger:
     ensure_dirs()
-    logger = logging.getLogger("things_todoist")
+    logger = logging.getLogger("things_reminders")
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
     formatter = logging.Formatter(

@@ -1,11 +1,11 @@
-"""Read incomplete Things to-dos and map them onto Todoist labels."""
+"""Read incomplete Things to-dos and map them onto Reminders tags."""
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 
-log = logging.getLogger("things_todoist")
+log = logging.getLogger("things_reminders")
 
 
 @dataclass(frozen=True)
@@ -14,7 +14,7 @@ class DesiredTask:
     title: str
     description: str
     list_label: str
-    labels: tuple[str, ...]
+    tags: tuple[str, ...]
     due_date: str | None
 
 
@@ -88,7 +88,7 @@ def _resolve_project_area(
     return project_title, area_title
 
 
-def _labels_for(list_name: str, project_title: str, area_title: str) -> tuple[str, ...]:
+def _tags_for(list_name: str, project_title: str, area_title: str) -> tuple[str, ...]:
     """Project > Area > Anytime. Inbox and Someday always apply when present."""
     names: list[str] = []
     if list_name in ("Inbox", "Someday"):
@@ -174,7 +174,7 @@ def read_things() -> ThingsSnapshot:
                 title=title,
                 description=build_description(task),
                 list_label=list_name,
-                labels=_labels_for(list_name, project_title, area_title),
+                tags=_tags_for(list_name, project_title, area_title),
                 due_date=_as_due(task.get("start_date")),
             )
         )

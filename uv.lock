@@ -9,7 +9,7 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/8a/f7/7ca01abf3927ed680688e2ce4c608f0c252dc224134ca2b1f04940db0efd/things_py-1.0.1.tar.gz", hash = "sha256:6d760727e57c0cfb85f18a63b36459287573f7d7c0442874a76d4ef38b92089d", size = 30360, upload-time = "2026-02-28T22:23:41.197Z" }
 
 [[package]]
-name = "things-todoist"
+name = "things-reminders"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

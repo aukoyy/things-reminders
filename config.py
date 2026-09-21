@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
-APP_NAME = "things-todoist"
-KEYCHAIN_SERVICE = "things-todoist"
-INBOX_ACTIVE_LIMIT = 300
-LIST_LABELS = ("Inbox", "Anytime", "Someday")
-# Removed list labels still on existing Todoist tasks; strip and delete them.
-OBSOLETE_LABELS = ("Today",)
-MAX_COMMANDS_PER_REQUEST = 100
-SYNC_URL = "https://api.todoist.com/api/v1/sync"
+APP_NAME = "things-reminders"
+KEYCHAIN_SERVICE = "things-reminders"
+REMINDERS_LIST = "Things"
+LIST_TAGS = ("Inbox", "Anytime", "Someday")
 
 HOME = Path.home()
 ROOT = Path(__file__).resolve().parent
@@ -69,16 +66,25 @@ def _keychain(account: str) -> str | None:
     return value or None
 
 
-def todoist_token() -> str:
+def remctl_bin() -> str:
+    """Resolve the installed remctl CLI. Prefer REMCTL_BIN, then PATH, then ~/bin."""
     load_dotenv()
-    token = os.environ.get("TODOIST_API_TOKEN") or _keychain("todoist-api-token")
-    if not token:
-        raise SystemExit(
-            "Missing Todoist API token. Set TODOIST_API_TOKEN in .env or the "
-            "environment, or add a Keychain item (service things-todoist, "
-            "account todoist-api-token)."
-        )
-    return token
+    explicit = os.environ.get("REMCTL_BIN")
+    if explicit:
+        path = Path(explicit).expanduser()
+        if not path.is_file():
+            raise SystemExit(f"REMCTL_BIN={explicit} is not a file.")
+        return str(path.resolve())
+    found = shutil.which("remctl")
+    if found:
+        return found
+    fallback = HOME / "bin" / "remctl"
+    if fallback.is_file():
+        return str(fallback)
+    raise SystemExit(
+        "remctl not found. Install remctl and put it on PATH or at ~/bin/remctl, "
+        "or set REMCTL_BIN."
+    )
 
 
 def things_auth_token() -> str | None:

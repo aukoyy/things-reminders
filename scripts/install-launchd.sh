@@ -3,9 +3,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-LABEL="com.aukoyy.things-todoist"
+LABEL="com.aukoyy.things-reminders"
 DEST="${HOME}/Library/LaunchAgents/${LABEL}.plist"
-LOG_DIR="${HOME}/Library/Logs/things-todoist"
+LOG_DIR="${HOME}/Library/Logs/things-reminders"
 PYTHON="${ROOT}/.venv/bin/python"
 
 if [[ ! -x "$PYTHON" ]]; then
@@ -36,10 +36,12 @@ fi
 echo "Loaded ${DEST}"
 echo "Runs every 5 minutes while this Mac is awake (StartInterval 300)."
 echo
-echo "Grant Full Disk Access to these binaries, then re-run a sync:"
+echo "Grant Full Disk Access to these binaries so the job can read Things and Reminders:"
 echo "  ${PYTHON}"
 echo "  /bin/bash"
 echo "System Settings → Privacy & Security → Full Disk Access"
+echo
+echo "If remctl asks for Reminders access, allow it for that same Python."
 echo
 echo "Logs: ${LOG_DIR}/sync.log"
 echo "Dry-run first: ${PYTHON} ${ROOT}/sync.py"
