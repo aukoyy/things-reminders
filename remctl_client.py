@@ -233,11 +233,21 @@ class RemctlClient:
         return _parse_json(result.stdout)
 
 
+def canonical_tag(name: str) -> str:
+    """Tag form Reminders actually stores.
+
+    Reminders strips whitespace from synced tags, so ``Side quest`` comes
+    back as ``Sidequest``. Comparing or writing the spaced form makes every
+    run look dirty and rewrites the reminder.
+    """
+    return "".join(ch for ch in str(name).replace(",", " ") if not ch.isspace())
+
+
 def format_tags(tags: tuple[str, ...] | list[str]) -> str:
     cleaned: list[str] = []
     seen: set[str] = set()
     for raw in tags:
-        name = str(raw).replace(",", " ").strip()
+        name = canonical_tag(raw)
         if not name or name in seen:
             continue
         seen.add(name)
@@ -251,7 +261,11 @@ def snapshot_item(item: dict) -> dict:
     tags = item.get("tags") or []
     if not isinstance(tags, list):
         tags = []
-    names = [str(tag) for tag in tags]
+    names = []
+    for tag in tags:
+        name = canonical_tag(str(tag))
+        if name:
+            names.append(name)
     return {
         "title": item.get("title") or "",
         "notes": item.get("notes") or "",

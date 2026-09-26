@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from datetime import date
 
 log = logging.getLogger("things_reminders")
 
@@ -108,10 +109,20 @@ def _tags_for(list_name: str, project_title: str, area_title: str) -> tuple[str,
     return tuple(unique)
 
 
-def _as_due(start_date: str | None) -> str | None:
+def reminder_due(start_date: str | None, today: str) -> str | None:
+    """Map a Things When date onto a Reminders due date.
+
+    Things shows a When date of today or earlier in Today, and it does not
+    keep an overdue state. A past When date would show up as overdue in
+    Todoist, so those dates are written as today. A future When date stays
+    that date.
+    """
     if not start_date:
         return None
-    return str(start_date)[:10]
+    day = str(start_date)[:10]
+    if day <= today:
+        return today
+    return day
 
 
 def _container_titles(rows: list[dict], statuses: set[str] | None = None) -> set[str]:
@@ -126,7 +137,7 @@ def _container_titles(rows: list[dict], statuses: set[str] | None = None) -> set
     return titles
 
 
-def read_things() -> ThingsSnapshot:
+def read_things(today: str | None = None) -> ThingsSnapshot:
     try:
         import things
     except ImportError as exc:
@@ -154,6 +165,7 @@ def read_things() -> ThingsSnapshot:
     active_areas = _container_titles(areas)
     active_containers = frozenset(active_projects | active_areas)
     retired_containers = frozenset(retired_projects - active_containers)
+    today = today or date.today().isoformat()
 
     desired: list[DesiredTask] = []
     for task in raw:
@@ -175,7 +187,7 @@ def read_things() -> ThingsSnapshot:
                 description=build_description(task),
                 list_label=list_name,
                 tags=_tags_for(list_name, project_title, area_title),
-                due_date=_as_due(task.get("start_date")),
+                due_date=reminder_due(task.get("start_date"), today),
             )
         )
     log.info(

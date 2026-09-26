@@ -19,7 +19,7 @@ Every incomplete to-do becomes a reminder in the Things list. Organization is ta
 | An area (no project)        | that area's name    |
 | Anytime, no project or area | `Anytime`           |
 
-Things When → reminder due date (all-day). Deadlines, headings, and checklists go in the notes.
+Things When → reminder due date (all-day). A When date of today or earlier is written as today, matching Things Today; a future When date stays that date. Deadlines, headings, and checklists go in the notes. Tag names are written without spaces, because Reminders strips them.
 
 macOS only. Needs [uv](https://docs.astral.sh/uv/) (`brew install uv`), a working remctl install, and Full Disk Access for `.venv/bin/python` (and `/bin/bash` if you use launchd) so the job can read the Things DB and so remctl can read Reminders.
 

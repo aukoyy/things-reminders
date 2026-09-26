@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from remctl_client import snapshot_item
+from remctl_client import canonical_tag, snapshot_item
 from things_reader import DesiredTask
 
 
@@ -53,7 +53,11 @@ class SyncPlan:
 
 
 def _tags_equal(desired: tuple[str, ...], actual: list[str] | None) -> bool:
-    return set(desired) == set(actual or [])
+    wanted = {canonical_tag(tag) for tag in desired}
+    wanted.discard("")
+    found = {canonical_tag(tag) for tag in (actual or [])}
+    found.discard("")
+    return wanted == found
 
 
 def _item_complete(item: dict | None) -> bool:

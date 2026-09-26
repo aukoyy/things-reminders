@@ -31,7 +31,12 @@ Things to-dos when they're completed in Reminders.
   Organization is tags, with hierarchy Project > Area > Anytime: a project
   tag if the to-do is in a project, else an area tag, else Anytime. Inbox
   and Someday always apply when the to-do is in those lists. Things When →
-  remctl due date (all-day `YYYY-MM-DD`). Deadline is appended to the notes.
+  remctl due date (all-day `YYYY-MM-DD`). A When date of today or earlier is
+  written as today's date: Things rolls those into Today and has no overdue
+  state, and a past date shows up as overdue in Todoist. A future When date
+  stays that date. Deadline is appended to the notes. Reminder tags cannot
+  contain whitespace; compare and write them with spaces removed so a run
+  does not rewrite reminders whose tags already match.
   Unused Reminders tags are left in place (tags are global; remctl has no
   safe tag-delete).
 - Reverse: poll remctl for completed or missing mapped reminders, then
