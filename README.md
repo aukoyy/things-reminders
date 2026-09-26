@@ -8,6 +8,16 @@ Most of this repo was written by an AI coding agent. I have not audited it as a 
 
 One-way sync from [Things 3](https://culturedcode.com/things/) (macOS) into an Apple Reminders list named **Things**, via [remctl](https://github.com/viticci/remctl). Completing a reminder completes the matching Things to-do.
 
+Three shared lists also sync both ways. Title, notes, due date, completion, and removal cross in either direction. If both sides changed, Things wins. Pre-existing items are not matched by title, so the first apply creates anything that is not already linked.
+
+| Reminders | Things |
+| --- | --- |
+| Ø Full Vase | 💐 Full Vase |
+| Aukners Todo | 🏡 Aukners |
+| Handleliste | 🛒 Handleliste |
+
+A to-do in one of those Things projects, or sitting directly in an area of that name, stays out of the Things reminders list. To-dos in a project nested under the area stay on the one-way sync. If the Things project or area is missing, the sync creates a project. On 🛒 Handleliste, a to-do tagged `ma` is not copied; tagging one that was already synced deletes it from Reminders.
+
 Things wins on title, notes, dates, and tags. Reminders wins only on completion. The Things database is never written; completions go through `things:///`. That URL scheme brings Things 3 to the front, so if you complete a reminder, Things might open on the next sync.
 
 Every incomplete to-do becomes a reminder in the Things list. Organization is tags, not extra lists:

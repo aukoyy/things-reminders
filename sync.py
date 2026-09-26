@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Things 3 → Reminders list 'Things'. Dry-run by default; pass --apply to write."""
+"""Sync Things 3 with Reminders. Dry-run by default; pass --apply to write."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import sys
 from config import REMINDERS_LIST, remctl_bin, things_auth_token
 from differ import SyncPlan, build_plan
 from logging_setup import log_path, setup_logging
+from pair_sync import sync_pairs
 from remctl_client import UNSET, RemctlClient, RemctlError
 from state import State
 from things_reader import read_things
@@ -20,7 +21,10 @@ log = logging.getLogger("things_reminders")
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Sync incomplete Things to-dos into the Reminders list 'Things' as tagged reminders."
+        description=(
+            "Sync incomplete Things to-dos into the Reminders list 'Things', "
+            "and two-way sync the shared lists."
+        )
     )
     parser.add_argument(
         "--apply",
@@ -158,6 +162,7 @@ def run(apply: bool) -> int:
 
     log.info("remctl=%s list=%r", remctl_bin(), REMINDERS_LIST)
     state = State.load()
+    one_way_failed = False
     try:
         items = client.pull(REMINDERS_LIST, state.mapping, create_list=apply)
     except RemctlError as exc:
@@ -169,16 +174,19 @@ def run(apply: bool) -> int:
             items = {}
         else:
             log.error("%s", exc)
-            return 1
+            one_way_failed = True
+            items = None
 
-    plan = build_plan(desired, state.mapping, items)
-    if not plan.summaries:
-        log.info("noop: %d tasks already in sync", plan.unchanged)
-        state.save()
-        return 0
+    if items is not None:
+        plan = build_plan(desired, state.mapping, items)
+        if not plan.summaries:
+            log.info("noop: %d tasks already in sync", plan.unchanged)
+            state.save()
+        else:
+            apply_plan(plan, client, state, dry_run=dry_run)
 
-    apply_plan(plan, client, state, dry_run=dry_run)
-    return 0
+    sync_pairs(client, state, dry_run=dry_run)
+    return 1 if one_way_failed else 0
 
 
 def main(argv: list[str] | None = None) -> int:

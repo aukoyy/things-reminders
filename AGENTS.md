@@ -2,7 +2,8 @@
 
 One-way sync from Things 3 (macOS) into a Reminders list named Things, via
 [remctl](https://github.com/viticci/remctl). Plus a reverse leg that completes
-Things to-dos when they're completed in Reminders.
+Things to-dos when they're completed in Reminders. Three shared lists also
+sync both ways; see Design.
 
 ## Hard constraints
 
@@ -41,15 +42,34 @@ Things to-dos when they're completed in Reminders.
   safe tag-delete).
 - Reverse: poll remctl for completed or missing mapped reminders, then
   things:///update?id=<uuid>&completed=true. When a Things to-do disappears,
-  complete the matching reminder (`remctl done`). Do not delete reminders.
-- State: local file mapping Things UUID ↔ remctl numeric reminder ID. The
+  complete the matching reminder (`remctl done`). Do not delete reminders
+  on this path.
+- Shared lists (two-way, hardcoded in config.LIST_PAIRS):
+  "Ø Full Vase" ↔ "💐 Full Vase", "Aukners Todo" ↔ "🏡 Aukners",
+  "Handleliste" ↔ "🛒 Handleliste". A to-do is in the pair when it is in
+  that Things project, or directly in that area. To-dos inside a nested
+  project stay on the one-way sync. These to-dos are excluded from the
+  Things reminders list. If the Things project or area is missing, create
+  a project (the URL scheme cannot create areas). Title, notes, and When
+  ↔ due date copy as-is (past When dates are not rewritten to today on
+  this path). Completion completes the other side. Removal deletes the
+  reminder (`remctl delete --force`) or cancels the Things to-do. If only
+  one side changed since the last snapshot, that side wins; if both
+  changed, Things wins. Do not match pre-existing items by title.
+  On "🛒 Handleliste", a Things to-do tagged "ma" (any case) is not copied;
+  if it was already synced, delete that reminder.
+- State: local file mapping Things UUID ↔ remctl numeric reminder ID, plus
+  `pairs` (two-way links and last synced title/notes/due) and `pending`
+  (Reminders → Things creates whose new uuid was not visible yet). The
   differ must be idempotent — running it twice in a row changes nothing.
 - Schedule: launchd with StartInterval 300, not cron, so it survives sleep.
 
 ## Conflict rule
 
-Things wins on all content (title, notes, dates, tags). Reminders wins only
-on completion. Never write content back to Things.
+On the one-way Things list, Things wins on all content (title, notes, dates,
+tags). Reminders wins only on completion. Never write that content back to
+Things. The shared lists above are the exception: content writes back to
+Things, and a removal deletes the other side.
 
 ## Non-negotiables for any change
 

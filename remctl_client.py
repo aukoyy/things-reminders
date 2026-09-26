@@ -175,6 +175,17 @@ class RemctlClient:
             )
         return payload
 
+    def delete(self, remctl_id: str) -> dict:
+        payload = self.run(["delete", str(remctl_id), "--force", "--json"])
+        if not isinstance(payload, dict):
+            raise RemctlError(f"remctl delete {remctl_id} --json did not return an object")
+        if payload.get("status") != "deleted":
+            raise RemctlError(
+                f"remctl delete failed: {payload.get('message') or payload}",
+                payload=payload,
+            )
+        return payload
+
     def done(self, remctl_id: str) -> dict:
         payload = self.run(["done", str(remctl_id), "--json"])
         if not isinstance(payload, dict):

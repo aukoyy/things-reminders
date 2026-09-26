@@ -5,12 +5,60 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 
 APP_NAME = "things-reminders"
 KEYCHAIN_SERVICE = "things-reminders"
 REMINDERS_LIST = "Things"
 LIST_TAGS = ("Inbox", "Anytime", "Someday")
+
+
+@dataclass(frozen=True)
+class ListPair:
+    """Reminders list ↔ Things project or area. block_tag skips Things → Reminders."""
+
+    reminders_list: str
+    things_list: str
+    block_tag: str | None = None
+
+
+# Hardcoded shared lists. Reminders name first, Things name second.
+# A Things to-do is in the pair when it is in that project, or when it sits
+# directly in that area (not inside a project). Nested projects stay on the
+# one-way sync. Missing Things containers are created as projects.
+LIST_PAIRS: tuple[ListPair, ...] = (
+    ListPair("Ø Full Vase", "💐 Full Vase"),
+    ListPair("Aukners Todo", "🏡 Aukners"),
+    ListPair("Handleliste", "🛒 Handleliste", block_tag="ma"),
+)
+
+
+def things_list_for_todo(project_title: str, area_title: str) -> str | None:
+    """Paired Things list for a to-do, if it should stay off the one-way sync."""
+    titles = {pair.things_list for pair in LIST_PAIRS}
+    project_title = project_title.strip()
+    area_title = area_title.strip()
+    if project_title in titles:
+        return project_title
+    if not project_title and area_title in titles:
+        return area_title
+    return None
+
+
+def pair_for_things_list(title: str) -> ListPair | None:
+    for pair in LIST_PAIRS:
+        if pair.things_list == title:
+            return pair
+    return None
+
+
+def pair_for_reminders_list(title: str) -> ListPair | None:
+    folded = title.casefold()
+    for pair in LIST_PAIRS:
+        if pair.reminders_list == title or pair.reminders_list.casefold() == folded:
+            return pair
+    return None
 
 HOME = Path.home()
 ROOT = Path(__file__).resolve().parent

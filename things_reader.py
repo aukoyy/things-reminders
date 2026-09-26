@@ -6,6 +6,8 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 
+from config import things_list_for_todo
+
 log = logging.getLogger("things_reminders")
 
 
@@ -168,10 +170,15 @@ def read_things(today: str | None = None) -> ThingsSnapshot:
     today = today or date.today().isoformat()
 
     desired: list[DesiredTask] = []
+    skipped_pairs = 0
+    seen: set[str] = set()
     for task in raw:
         if task.get("type") != "to-do":
             continue
         uuid = task["uuid"]
+        if uuid in seen:
+            continue
+        seen.add(uuid)
         start = task.get("start")
         list_name = list_label(start)
         title = (task.get("title") or "").strip() or "(untitled)"
@@ -180,6 +187,9 @@ def read_things(today: str | None = None) -> ThingsSnapshot:
             project_title = ""
         if area_title not in active_areas:
             area_title = ""
+        if things_list_for_todo(project_title, area_title):
+            skipped_pairs += 1
+            continue
         desired.append(
             DesiredTask(
                 things_uuid=uuid,
@@ -191,8 +201,9 @@ def read_things(today: str | None = None) -> ThingsSnapshot:
             )
         )
     log.info(
-        "Read %d open Things to-dos. Active containers=%d retired=%d",
+        "Read %d open Things to-dos (%d left to paired lists). Active containers=%d retired=%d",
         len(desired),
+        skipped_pairs,
         len(active_containers),
         len(retired_containers),
     )
